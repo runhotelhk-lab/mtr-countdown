@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>將軍澳綫實時列車</title>
+    <title>將軍澳資訊儀表板</title>
     <style>
         * {
             box-sizing: border-box;
@@ -17,25 +17,65 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             min-height: 100vh;
-            padding: 20px 16px;
+            padding: 16px;
             text-align: center;
         }
 
         .container {
             width: 100%;
-            max-width: 400px;
+            max-width: 440px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
+        /* TABS STYLING */
+        .tab-bar {
+            display: flex;
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid #333;
+            width: 100%;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 0;
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background-color: #00e676;
+            color: #121212;
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* CARD STYLING */
         .card {
             background-color: #1e1e1e;
             border-radius: 16px;
-            padding: 28px 20px;
+            padding: 24px 20px;
             width: 100%;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
             border: 1px solid #333;
@@ -50,18 +90,18 @@
         }
 
         .minutes-container {
-            margin: 16px 0 8px 0;
+            margin: 12px 0 8px 0;
         }
 
         .minutes-number {
-            font-size: 4.5rem;
+            font-size: 4.2rem;
             font-weight: 800;
             color: #00e676;
             line-height: 1;
         }
 
         .dest-tag {
-            font-size: 3rem;
+            font-size: 2.8rem;
             font-weight: 800;
             color: #00e676;
             display: block;
@@ -69,32 +109,72 @@
         }
 
         .minutes-unit {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 600;
             color: #ffffff;
             margin-top: 6px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .next-next-train {
-            margin-top: 12px;
-            margin-bottom: 8px;
+            margin-top: 10px;
+            margin-bottom: 4px;
         }
 
+        .dest-badge {
+            color: #00e676;
+            font-weight: bold;
+        }
+
+        /* TRAFFIC CAMERA STYLING */
+        .cam-card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #333;
+            text-align: left;
+        }
+
+        .cam-title {
+            font-size: 0.85rem;
+            color: #dddddd;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .cam-img-wrap {
+            width: 100%;
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cam-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* CONTROL & FOOTER */
         .update-time {
             font-size: 0.85rem;
             color: #757575;
-            margin-top: 16px;
+            margin-top: 8px;
         }
 
         .countdown-label {
             font-size: 0.8rem;
             color: #00e676;
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         .refresh-btn {
-            margin-top: 16px;
+            margin-top: 12px;
             background-color: #333;
             color: #fff;
             border: none;
@@ -113,13 +193,8 @@
         .version-tag {
             font-size: 0.7rem;
             color: #444444;
-            margin-top: 12px;
+            margin-top: 8px;
             text-align: center;
-        }
-
-        .dest-badge {
-            color: #00e676;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -127,63 +202,115 @@
 
     <div class="container">
         
-        <!-- CARD 1: LOHAS PARK -->
-        <div class="card">
-            <div class="station-label">康城站 下一班車</div>
-            
-            <div class="minutes-container">
-                <span class="station-label">仲有</span>
-                <div id="lhp-minutes" class="minutes-number">--</div>
-                <div class="minutes-unit">分鐘到站</div>
+        <!-- TOP NAVIGATION TABS -->
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('mtr')">鐵路到站時間</button>
+            <button class="tab-btn" onclick="switchTab('cctv')">交通快拍圖像</button>
+        </div>
+
+        <!-- TAB 1: MTR SCHEDULE -->
+        <div id="tab-mtr" class="tab-content active">
+            <!-- CARD 1: LOHAS PARK -->
+            <div class="card">
+                <div class="station-label">康城站 下一班車</div>
+                <div class="minutes-container">
+                    <span class="station-label">仲有</span>
+                    <div id="lhp-minutes" class="minutes-number">--</div>
+                    <div class="minutes-unit">分鐘到站</div>
+                </div>
+                <div class="station-label next-next-train">
+                    再下一班車還有 <span id="lhp-next-minutes" style="color: #ffffff;">--</span> 分鐘到達
+                </div>
             </div>
 
-            <div class="station-label next-next-train">
-                再下一班車還有 <span id="lhp-next-minutes" style="color: #ffffff;">--</span> 分鐘到達
+            <!-- CARD 2: TSEUNG KWAN O -->
+            <div class="card">
+                <div class="station-label">將軍澳站 下一班車</div>
+                <div class="minutes-container">
+                    <span id="tko-dest" class="dest-tag">--</span>
+                    <span class="station-label">仲有</span>
+                    <div id="tko-minutes" class="minutes-number">--</div>
+                    <div class="minutes-unit">分鐘到站</div>
+                </div>
+                <div class="station-label next-next-train">
+                    再下一班 (<span id="tko-next-dest" class="dest-badge">--</span>) 還有 <span id="tko-next-minutes" style="color: #ffffff;">--</span> 分鐘到達
+                </div>
             </div>
         </div>
 
-        <!-- CARD 2: TSEUNG KWAN O (Po Lam / LOHAS Park) -->
-        <div class="card">
-            <div class="station-label">將軍澳站 下一班車</div>
-            
-            <div class="minutes-container">
-                <span id="tko-dest" class="dest-tag">--</span>
-                <span class="station-label">仲有</span>
-                <div id="tko-minutes" class="minutes-number">--</div>
-                <div class="minutes-unit">分鐘到站</div>
-            </div>
-
-            <div class="station-label next-next-train">
-                再下一班 (<span id="tko-next-dest" class="dest-badge">--</span>) 還有 <span id="tko-next-minutes" style="color: #ffffff;">--</span> 分鐘到達
-            </div>
+        <!-- TAB 2: TRAFFIC SNAPSHOT CAMERAS -->
+        <div id="tab-cctv" class="tab-content">
+            <div id="cctv-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
         </div>
 
-        <!-- CONTROL & STATUS -->
+        <!-- CONTROL & STATUS (SHARED) -->
         <div style="width: 100%;">
             <div id="update-time" class="update-time">(更新時間: --:--:--)</div>
             <div id="countdown" class="countdown-label">5 秒後自動更新</div>
             <button class="refresh-btn" onclick="manualRefresh()">手動刷新</button>
-            <div class="version-tag">v1.1.1</div>
+            <div class="version-tag">v1.2.0</div>
         </div>
 
     </div>
 
     <script>
+        let currentTab = 'mtr';
         let countdownValue = 5;
         let timerInterval = null;
 
-        // Chinese Station Name Translation Map
-        const stationNames = {
-            'POA': '寶琳',
-            'LHP': '康城',
-            'TIK': '調景嶺',
-            'NOP': '北角'
-        };
+        // CCTV Camera list from screenshot
+        const cctvCameras = [
+            { key: 'TK105F', name: '寶順路近將軍澳游泳池 [TK105F]' },
+            { key: 'K811F', name: '將軍澳道近翠屏南邨 [K811F]' },
+            { key: 'TK904F', name: '將軍澳隧道將軍澳入口 [TK904F]' },
+            { key: 'K701F', name: '將軍澳藍田隧道 (藍田入口) [K701F]' },
+            { key: 'AID07103', name: '將軍澳隧道公路近將軍澳電話機房 - 西行 [AID07103]' },
+            { key: 'AID07104', name: '將軍澳隧道公路近將軍澳隧道入口 - 西行 [AID07104]' },
+            { key: 'AID07107', name: '將軍澳道近油塘電話機房 - 西行 [AID07107]' },
+            { key: 'AID07227', name: '將軍澳道近觀塘游泳池 - 東行 [AID07227]' },
+            { key: 'AID07228', name: '將軍澳道近翠屏南邨 - 東行 [AID07228]' },
+            { key: 'AID07229', name: '將軍澳隧道公路近將軍澳隧道入口 - 東行 [AID07229]' },
+            { key: 'AID07230', name: '將軍澳隧道公路近寶康公園 - 東行 [AID07230]' },
+            { key: 'AID07231', name: '環保大道近將軍澳隧道公路 - 東行 [AID07231]' },
+            { key: 'AID07106', name: '將軍澳道近將軍澳變電站 - 西行 [AID07106]' },
+            { key: 'AID07105', name: '將軍澳道近連德道 - 西行 [AID07105]' }
+        ];
 
+        const stationNames = { 'POA': '寶琳', 'LHP': '康城', 'TIK': '調景嶺', 'NOP': '北角' };
+
+        // TAB SWITCHER
+        function switchTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            if (tabName === 'mtr') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tab-mtr').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tab-cctv').classList.add('active');
+                renderCCTVImages();
+            }
+        }
+
+        // RENDER CCTV SNAPSHOTS
+        function renderCCTVImages() {
+            const container = document.getElementById('cctv-list');
+            const ts = new Date().getTime(); // timestamp to prevent caching
+            
+            container.innerHTML = cctvCameras.map(cam => `
+                <div class="cam-card">
+                    <div class="cam-title">${cam.name}</div>
+                    <div class="cam-img-wrap">
+                        <img class="cam-img" src="https://tdcctv.data.one.gov.hk/${cam.key}.JPG?_=${ts}" alt="${cam.name}" loading="lazy" onerror="this.src='https://tdcctv.data.one.gov.hk/image?key=${cam.key}&_=${ts}'" />
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // FETCH MTR DATA
         async function fetchMTRData() {
-            const updateTimeEl = document.getElementById('update-time');
-
-            // 1. Fetch LOHAS Park Data (LHP)
             try {
                 const resLHP = await fetch('https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=TKL&sta=LHP&_=' + new Date().getTime());
                 const dataLHP = await resLHP.json();
@@ -191,7 +318,6 @@
                 if (dataLHP.status === 1 && dataLHP.data['TKL-LHP']) {
                     const lhpData = dataLHP.data['TKL-LHP'];
                     const trains = lhpData.UP || lhpData.DOWN || [];
-                    
                     document.getElementById('lhp-minutes').textContent = trains[0] ? trains[0].ttnt : '0';
                     document.getElementById('lhp-next-minutes').textContent = trains[1] ? trains[1].ttnt : '--';
                 }
@@ -200,32 +326,23 @@
                 document.getElementById('lhp-minutes').textContent = 'Err';
             }
 
-            // 2. Fetch Tseung Kwan O Data (TKO - Destination filter for POA or LHP)
             try {
                 const resTKO = await fetch('https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=TKL&sta=TKO&_=' + new Date().getTime());
                 const dataTKO = await resTKO.json();
 
                 if (dataTKO.status === 1 && dataTKO.data['TKL-TKO']) {
                     const tkoData = dataTKO.data['TKL-TKO'];
-                    
-                    // Combine all departures (UP & DOWN)
                     const allTrains = [...(tkoData.UP || []), ...(tkoData.DOWN || [])];
-                    
-                    // Filter specifically for trains bound for Po Lam (POA) or LOHAS Park (LHP)
                     const filteredTrains = allTrains.filter(t => t.dest === 'POA' || t.dest === 'LHP');
 
                     if (filteredTrains.length > 0) {
-                        // 1st Train
                         const firstTrain = filteredTrains[0];
-                        const dest1 = stationNames[firstTrain.dest] || firstTrain.dest;
-                        document.getElementById('tko-dest').textContent = dest1; // Clean text without "往"
+                        document.getElementById('tko-dest').textContent = stationNames[firstTrain.dest] || firstTrain.dest;
                         document.getElementById('tko-minutes').textContent = firstTrain.ttnt;
 
-                        // 2nd Train
                         const secondTrain = filteredTrains[1];
                         if (secondTrain) {
-                            const dest2 = stationNames[secondTrain.dest] || secondTrain.dest;
-                            document.getElementById('tko-next-dest').textContent = dest2;
+                            document.getElementById('tko-next-dest').textContent = stationNames[secondTrain.dest] || secondTrain.dest;
                             document.getElementById('tko-next-minutes').textContent = secondTrain.ttnt;
                         } else {
                             document.getElementById('tko-next-dest').textContent = '--';
@@ -240,10 +357,16 @@
                 console.error('TKO Error:', e);
                 document.getElementById('tko-minutes').textContent = 'Err';
             }
+        }
 
-            // Update timestamp
+        function refreshAllData() {
+            if (currentTab === 'mtr') {
+                fetchMTRData();
+            } else {
+                renderCCTVImages();
+            }
             const now = new Date();
-            updateTimeEl.textContent = `(更新時間: ${now.toTimeString().split(' ')[0]})`;
+            document.getElementById('update-time').textContent = `(更新時間: ${now.toTimeString().split(' ')[0]})`;
         }
 
         function startCountdown() {
@@ -256,7 +379,7 @@
                 countdownValue--;
                 if (countdownValue <= 0) {
                     countdownEl.textContent = '正在更新...';
-                    fetchMTRData();
+                    refreshAllData();
                     countdownValue = 5;
                 } else {
                     countdownEl.textContent = `${countdownValue} 秒後自動更新`;
@@ -265,12 +388,12 @@
         }
 
         function manualRefresh() {
-            fetchMTRData();
+            refreshAllData();
             startCountdown();
         }
 
         // Run on load
-        fetchMTRData();
+        refreshAllData();
         startCountdown();
     </script>
 </body>
