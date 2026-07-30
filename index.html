@@ -130,16 +130,23 @@
                 const response = await fetch('https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=TKL&sta=LHP&_=' + new Date().getTime());
                 const data = await response.json();
 
-                if (data.status === 1 && data.data['TKL-LHP'] && data.data['TKL-LHP'].DOWN) {
-                    const trains = data.data['TKL-LHP'].DOWN;
+                if (data.status === 1 && data.data['TKL-LHP']) {
+                    const lhpData = data.data['TKL-LHP'];
+                    // LOHAS Park departures are under UP or DOWN depending on destination
+                    const trains = lhpData.UP || lhpData.DOWN || [];
                     
-                    // 1st Train
-                    const firstTrain = trains[0];
-                    minutesEl.textContent = firstTrain ? firstTrain.ttnt : '0';
+                    if (trains.length > 0) {
+                        // 1st Train
+                        const firstTrain = trains[0];
+                        minutesEl.textContent = firstTrain ? firstTrain.ttnt : '0';
 
-                    // 2nd Train (seq 2)
-                    const secondTrain = trains[1];
-                    nextMinutesEl.textContent = secondTrain ? secondTrain.ttnt : '--';
+                        // 2nd Train (seq 2)
+                        const secondTrain = trains[1];
+                        nextMinutesEl.textContent = secondTrain ? secondTrain.ttnt : '--';
+                    } else {
+                        minutesEl.textContent = '--';
+                        nextMinutesEl.textContent = '--';
+                    }
                     
                     const now = new Date();
                     const timeString = now.toTimeString().split(' ')[0];
