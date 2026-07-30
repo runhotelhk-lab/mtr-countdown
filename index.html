@@ -163,7 +163,7 @@
             <div id="update-time" class="update-time">(更新時間: --:--:--)</div>
             <div id="countdown" class="countdown-label">5 秒後自動更新</div>
             <button class="refresh-btn" onclick="manualRefresh()">手動刷新</button>
-            <div class="version-tag">v1.1.0</div>
+            <div class="version-tag">v1.1.1</div>
         </div>
 
     </div>
@@ -200,25 +200,29 @@
                 document.getElementById('lhp-minutes').textContent = 'Err';
             }
 
-            // 2. Fetch Tseung Kwan O Data (TKO - Down track towards POA/LHP)
+            // 2. Fetch Tseung Kwan O Data (TKO - Destination filter for POA or LHP)
             try {
                 const resTKO = await fetch('https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=TKL&sta=TKO&_=' + new Date().getTime());
                 const dataTKO = await resTKO.json();
 
                 if (dataTKO.status === 1 && dataTKO.data['TKL-TKO']) {
                     const tkoData = dataTKO.data['TKL-TKO'];
-                    // Trains towards Po Lam / LOHAS Park are on DOWN direction
-                    const trains = tkoData.DOWN || tkoData.UP || [];
+                    
+                    // Combine all departures (UP & DOWN)
+                    const allTrains = [...(tkoData.UP || []), ...(tkoData.DOWN || [])];
+                    
+                    // Filter specifically for trains bound for Po Lam (POA) or LOHAS Park (LHP)
+                    const filteredTrains = allTrains.filter(t => t.dest === 'POA' || t.dest === 'LHP');
 
-                    if (trains.length > 0) {
+                    if (filteredTrains.length > 0) {
                         // 1st Train
-                        const firstTrain = trains[0];
+                        const firstTrain = filteredTrains[0];
                         const dest1 = stationNames[firstTrain.dest] || firstTrain.dest;
-                        document.getElementById('tko-dest').textContent = dest1 + '往';
+                        document.getElementById('tko-dest').textContent = dest1; // Clean text without "往"
                         document.getElementById('tko-minutes').textContent = firstTrain.ttnt;
 
                         // 2nd Train
-                        const secondTrain = trains[1];
+                        const secondTrain = filteredTrains[1];
                         if (secondTrain) {
                             const dest2 = stationNames[secondTrain.dest] || secondTrain.dest;
                             document.getElementById('tko-next-dest').textContent = dest2;
