@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>康城站實時列車</title>
+    <title>將軍澳綫實時列車</title>
     <style>
         * {
             box-sizing: border-box;
@@ -20,62 +20,77 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 20px 16px;
             text-align: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .card {
             background-color: #1e1e1e;
             border-radius: 16px;
-            padding: 32px 24px;
+            padding: 28px 20px;
             width: 100%;
-            max-width: 400px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
             border: 1px solid #333;
             position: relative;
         }
 
         .station-label {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             color: #a0a0a0;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             letter-spacing: 1px;
         }
 
         .minutes-container {
-            margin: 20px 0 10px 0;
+            margin: 16px 0 8px 0;
         }
 
         .minutes-number {
-            font-size: 5rem;
+            font-size: 4.5rem;
             font-weight: 800;
             color: #00e676;
             line-height: 1;
         }
 
+        .dest-tag {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #00e676;
+            display: block;
+            margin-bottom: 4px;
+        }
+
         .minutes-unit {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 600;
             color: #ffffff;
-            margin-top: 8px;
-            margin-bottom: 20px;
+            margin-top: 6px;
+            margin-bottom: 16px;
         }
 
         .next-next-train {
-            margin-top: 15px;
-            margin-bottom: 10px;
+            margin-top: 12px;
+            margin-bottom: 8px;
         }
 
         .update-time {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #757575;
-            margin-top: 24px;
+            margin-top: 16px;
         }
 
         .countdown-label {
             font-size: 0.8rem;
             color: #00e676;
-            margin-top: 8px;
+            margin-top: 6px;
         }
 
         .refresh-btn {
@@ -83,95 +98,148 @@
             background-color: #333;
             color: #fff;
             border: none;
-            padding: 12px 24px;
-            font-size: 1rem;
+            padding: 10px 20px;
+            font-size: 0.95rem;
             border-radius: 24px;
             cursor: pointer;
             transition: background 0.2s;
+            width: 100%;
         }
 
         .refresh-btn:active {
             background-color: #555;
         }
 
-        /* Small version tag at bottom */
         .version-tag {
             font-size: 0.7rem;
             color: #444444;
-            margin-top: 20px;
-            letter-spacing: 0.5px;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .dest-badge {
+            color: #00e676;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <div class="station-label">康城站 下一班車</div>
+    <div class="container">
         
-        <div class="minutes-container">
-            <span class="station-label">仲有</span>
-            <div id="minutes" class="minutes-number">--</div>
-            <div class="minutes-unit">分鐘到站</div>
+        <!-- CARD 1: LOHAS PARK -->
+        <div class="card">
+            <div class="station-label">康城站 下一班車</div>
+            
+            <div class="minutes-container">
+                <span class="station-label">仲有</span>
+                <div id="lhp-minutes" class="minutes-number">--</div>
+                <div class="minutes-unit">分鐘到站</div>
+            </div>
+
+            <div class="station-label next-next-train">
+                再下一班車還有 <span id="lhp-next-minutes" style="color: #ffffff;">--</span> 分鐘到達
+            </div>
         </div>
 
-        <!-- Next Next Train Section -->
-        <div class="station-label next-next-train">
-            再下一班車還有 <span id="next-minutes" style="color: #ffffff;">--</span> 分鐘到達
+        <!-- CARD 2: TSEUNG KWAN O (Po Lam / LOHAS Park) -->
+        <div class="card">
+            <div class="station-label">將軍澳站 下一班車</div>
+            
+            <div class="minutes-container">
+                <span id="tko-dest" class="dest-tag">--</span>
+                <span class="station-label">仲有</span>
+                <div id="tko-minutes" class="minutes-number">--</div>
+                <div class="minutes-unit">分鐘到站</div>
+            </div>
+
+            <div class="station-label next-next-train">
+                再下一班 (<span id="tko-next-dest" class="dest-badge">--</span>) 還有 <span id="tko-next-minutes" style="color: #ffffff;">--</span> 分鐘到達
+            </div>
         </div>
 
-        <div id="update-time" class="update-time">(更新時間: --:--:--)</div>
-        <div id="countdown" class="countdown-label">5 秒後自動更新</div>
+        <!-- CONTROL & STATUS -->
+        <div style="width: 100%;">
+            <div id="update-time" class="update-time">(更新時間: --:--:--)</div>
+            <div id="countdown" class="countdown-label">5 秒後自動更新</div>
+            <button class="refresh-btn" onclick="manualRefresh()">手動刷新</button>
+            <div class="version-tag">v1.1.0</div>
+        </div>
 
-        <button class="refresh-btn" onclick="manualRefresh()">手動刷新</button>
-
-        <!-- Version Label -->
-        <div class="version-tag">v1.0.1</div>
     </div>
 
     <script>
         let countdownValue = 5;
         let timerInterval = null;
 
+        // Chinese Station Name Translation Map
+        const stationNames = {
+            'POA': '寶琳',
+            'LHP': '康城',
+            'TIK': '調景嶺',
+            'NOP': '北角'
+        };
+
         async function fetchMTRData() {
-            const minutesEl = document.getElementById('minutes');
-            const nextMinutesEl = document.getElementById('next-minutes');
             const updateTimeEl = document.getElementById('update-time');
 
+            // 1. Fetch LOHAS Park Data (LHP)
             try {
-                // Fetch live MTR API with timestamp to bypass local caching
-                const response = await fetch('https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=TKL&sta=LHP&_=' + new Date().getTime());
-                const data = await response.json();
+                const resLHP = await fetch('https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=TKL&sta=LHP&_=' + new Date().getTime());
+                const dataLHP = await resLHP.json();
 
-                if (data.status === 1 && data.data['TKL-LHP']) {
-                    const lhpData = data.data['TKL-LHP'];
-                    // LOHAS Park departures are under UP or DOWN depending on destination
+                if (dataLHP.status === 1 && dataLHP.data['TKL-LHP']) {
+                    const lhpData = dataLHP.data['TKL-LHP'];
                     const trains = lhpData.UP || lhpData.DOWN || [];
                     
+                    document.getElementById('lhp-minutes').textContent = trains[0] ? trains[0].ttnt : '0';
+                    document.getElementById('lhp-next-minutes').textContent = trains[1] ? trains[1].ttnt : '--';
+                }
+            } catch (e) {
+                console.error('LHP Error:', e);
+                document.getElementById('lhp-minutes').textContent = 'Err';
+            }
+
+            // 2. Fetch Tseung Kwan O Data (TKO - Down track towards POA/LHP)
+            try {
+                const resTKO = await fetch('https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=TKL&sta=TKO&_=' + new Date().getTime());
+                const dataTKO = await resTKO.json();
+
+                if (dataTKO.status === 1 && dataTKO.data['TKL-TKO']) {
+                    const tkoData = dataTKO.data['TKL-TKO'];
+                    // Trains towards Po Lam / LOHAS Park are on DOWN direction
+                    const trains = tkoData.DOWN || tkoData.UP || [];
+
                     if (trains.length > 0) {
                         // 1st Train
                         const firstTrain = trains[0];
-                        minutesEl.textContent = firstTrain ? firstTrain.ttnt : '0';
+                        const dest1 = stationNames[firstTrain.dest] || firstTrain.dest;
+                        document.getElementById('tko-dest').textContent = dest1 + '往';
+                        document.getElementById('tko-minutes').textContent = firstTrain.ttnt;
 
-                        // 2nd Train (seq 2)
+                        // 2nd Train
                         const secondTrain = trains[1];
-                        nextMinutesEl.textContent = secondTrain ? secondTrain.ttnt : '--';
+                        if (secondTrain) {
+                            const dest2 = stationNames[secondTrain.dest] || secondTrain.dest;
+                            document.getElementById('tko-next-dest').textContent = dest2;
+                            document.getElementById('tko-next-minutes').textContent = secondTrain.ttnt;
+                        } else {
+                            document.getElementById('tko-next-dest').textContent = '--';
+                            document.getElementById('tko-next-minutes').textContent = '--';
+                        }
                     } else {
-                        minutesEl.textContent = '--';
-                        nextMinutesEl.textContent = '--';
+                        document.getElementById('tko-dest').textContent = '--';
+                        document.getElementById('tko-minutes').textContent = '--';
                     }
-                    
-                    const now = new Date();
-                    const timeString = now.toTimeString().split(' ')[0];
-                    updateTimeEl.textContent = `(更新時間: ${timeString})`;
-                } else {
-                    minutesEl.textContent = '?';
-                    nextMinutesEl.textContent = '?';
                 }
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                minutesEl.textContent = 'Err';
-                nextMinutesEl.textContent = 'Err';
+            } catch (e) {
+                console.error('TKO Error:', e);
+                document.getElementById('tko-minutes').textContent = 'Err';
             }
+
+            // Update timestamp
+            const now = new Date();
+            updateTimeEl.textContent = `(更新時間: ${now.toTimeString().split(' ')[0]})`;
         }
 
         function startCountdown() {
@@ -194,10 +262,10 @@
 
         function manualRefresh() {
             fetchMTRData();
-            startCountdown(); // Reset timer on manual tap
+            startCountdown();
         }
 
-        // Run immediately on page load
+        // Run on load
         fetchMTRData();
         startCountdown();
     </script>
