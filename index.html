@@ -32,6 +32,7 @@
             max-width: 400px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
             border: 1px solid #333;
+            position: relative;
         }
 
         .station-label {
@@ -92,6 +93,14 @@
         .refresh-btn:active {
             background-color: #555;
         }
+
+        /* Small version tag at bottom */
+        .version-tag {
+            font-size: 0.7rem;
+            color: #444444;
+            margin-top: 20px;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -114,6 +123,9 @@
         <div id="countdown" class="countdown-label">5 秒後自動更新</div>
 
         <button class="refresh-btn" onclick="manualRefresh()">手動刷新</button>
+
+        <!-- Version Label -->
+        <div class="version-tag">v1.0.1</div>
     </div>
 
     <script>
