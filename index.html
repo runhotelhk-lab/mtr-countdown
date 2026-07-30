@@ -32,7 +32,7 @@
             gap: 16px;
         }
 
-        /* TABS STYLING */
+        /* MAIN TABS STYLING */
         .tab-bar {
             display: flex;
             background-color: #1e1e1e;
@@ -57,6 +57,35 @@
 
         .tab-btn.active {
             background-color: #00e676;
+            color: #121212;
+        }
+
+        /* SUB TABS STYLING */
+        .sub-tab-bar {
+            display: flex;
+            background-color: #2a2a2a;
+            border-radius: 20px;
+            padding: 3px;
+            border: 1px solid #444;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        .sub-tab-btn {
+            flex: 1;
+            padding: 6px 0;
+            background: none;
+            border: none;
+            color: #888888;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sub-tab-btn.active {
+            background-color: #ffffff;
             color: #121212;
         }
 
@@ -202,10 +231,10 @@
 
     <div class="container">
         
-        <!-- TOP NAVIGATION TABS -->
+        <!-- MAIN NAVIGATION TABS -->
         <div class="tab-bar">
-            <button class="tab-btn active" onclick="switchTab('mtr')">鐵路到站時間</button>
-            <button class="tab-btn" onclick="switchTab('cctv')">交通快拍圖像</button>
+            <button class="tab-btn active" onclick="switchMainTab('mtr')">鐵路到站時間</button>
+            <button class="tab-btn" onclick="switchMainTab('cctv')">交通快拍圖像</button>
         </div>
 
         <!-- TAB 1: MTR SCHEDULE -->
@@ -240,6 +269,14 @@
 
         <!-- TAB 2: TRAFFIC SNAPSHOT CAMERAS -->
         <div id="tab-cctv" class="tab-content">
+            <!-- SUB TABS -->
+            <div class="sub-tab-bar">
+                <button class="sub-tab-btn active" onclick="switchSubTab('outbound')">出去</button>
+                <button class="sub-tab-btn" onclick="switchSubTab('homebound')">返屋企</button>
+                <button class="sub-tab-btn" onclick="switchSubTab('crossharbour')">過海</button>
+            </div>
+
+            <!-- CCTV CONTAINER -->
             <div id="cctv-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
         </div>
 
@@ -248,58 +285,75 @@
             <div id="update-time" class="update-time">(更新時間: --:--:--)</div>
             <div id="countdown" class="countdown-label">5 秒後自動更新</div>
             <button class="refresh-btn" onclick="manualRefresh()">手動刷新</button>
-            <div class="version-tag">v1.2.0</div>
+            <div class="version-tag">v1.3.0</div>
         </div>
 
     </div>
 
     <script>
-        let currentTab = 'mtr';
+        let currentMainTab = 'mtr';
+        let currentSubTab = 'outbound';
         let countdownValue = 5;
         let timerInterval = null;
 
-        // CCTV Camera list from screenshot
-        const cctvCameras = [
-            { key: 'TK105F', name: '寶順路近將軍澳游泳池 [TK105F]' },
-            { key: 'K811F', name: '將軍澳道近翠屏南邨 [K811F]' },
-            { key: 'TK904F', name: '將軍澳隧道將軍澳入口 [TK904F]' },
-            { key: 'K701F', name: '將軍澳藍田隧道 (藍田入口) [K701F]' },
-            { key: 'AID07103', name: '將軍澳隧道公路近將軍澳電話機房 - 西行 [AID07103]' },
-            { key: 'AID07104', name: '將軍澳隧道公路近將軍澳隧道入口 - 西行 [AID07104]' },
-            { key: 'AID07107', name: '將軍澳道近油塘電話機房 - 西行 [AID07107]' },
-            { key: 'AID07227', name: '將軍澳道近觀塘游泳池 - 東行 [AID07227]' },
-            { key: 'AID07228', name: '將軍澳道近翠屏南邨 - 東行 [AID07228]' },
-            { key: 'AID07229', name: '將軍澳隧道公路近將軍澳隧道入口 - 東行 [AID07229]' },
-            { key: 'AID07230', name: '將軍澳隧道公路近寶康公園 - 東行 [AID07230]' },
-            { key: 'AID07231', name: '環保大道近將軍澳隧道公路 - 東行 [AID07231]' },
-            { key: 'AID07106', name: '將軍澳道近將軍澳變電站 - 西行 [AID07106]' },
-            { key: 'AID07105', name: '將軍澳道近連德道 - 西行 [AID07105]' }
-        ];
+        // Custom categorized CCTV cameras
+        const cctvGroups = {
+            outbound: [
+                { key: 'TK701F', name: '跨灣大橋近日出康城 [TK701F]' },
+                { key: 'AID07104', name: '將軍澳隧道公路近將軍澳隧道入口 - 西行 [AID07104]' },
+                { key: 'AID07103', name: '將軍澳隧道公路近將軍澳電話機房 - 西行 [AID07103]' },
+                { key: 'AID07101', name: '環保大道近蓬萊路 - 西行 [AID07101]' },
+                { key: 'AID07106', name: '將軍澳道近將軍澳道變電站 - 西行 [AID07106]' },
+                { key: 'AID02108', name: '觀塘繞道近觀塘碼頭 - 北行 [AID02108]' },
+                { key: 'AID02111', name: '觀塘繞道近九龍貨倉 - 北行 [AID02111]' }
+            ],
+            homebound: [
+                { key: 'AID02208', name: '觀塘繞道近九龍貨倉 - 南行 [AID02208]' },
+                { key: 'AID02211', name: '觀塘繞道近觀塘碼頭 - 東行 [AID02211]' },
+                { key: 'AID07230', name: '將軍澳隧道公路近寶康公園 - 東行 [AID07230]' },
+                { key: 'AID07232', name: '環保大道近昭信路 - 東行 [AID07232]' }
+            ],
+            crossharbour: [
+                { key: 'K952F', name: '東區海底隧道九龍入口 [K952F]' }
+            ]
+        };
 
         const stationNames = { 'POA': '寶琳', 'LHP': '康城', 'TIK': '調景嶺', 'NOP': '北角' };
 
-        // TAB SWITCHER
-        function switchTab(tabName) {
-            currentTab = tabName;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        // MAIN TAB SWITCHER
+        function switchMainTab(tabName) {
+            currentMainTab = tabName;
+            document.querySelectorAll('.tab-bar .tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
             if (tabName === 'mtr') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.querySelectorAll('.tab-bar .tab-btn')[0].classList.add('active');
                 document.getElementById('tab-mtr').classList.add('active');
             } else {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.querySelectorAll('.tab-bar .tab-btn')[1].classList.add('active');
                 document.getElementById('tab-cctv').classList.add('active');
                 renderCCTVImages();
             }
+        }
+
+        // SUB TAB SWITCHER
+        function switchSubTab(groupKey) {
+            currentSubTab = groupKey;
+            
+            const btnIndex = groupKey === 'outbound' ? 0 : (groupKey === 'homebound' ? 1 : 2);
+            document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.sub-tab-btn')[btnIndex].classList.add('active');
+
+            renderCCTVImages();
         }
 
         // RENDER CCTV SNAPSHOTS
         function renderCCTVImages() {
             const container = document.getElementById('cctv-list');
             const ts = new Date().getTime(); // timestamp to prevent caching
+            const cameras = cctvGroups[currentSubTab] || [];
             
-            container.innerHTML = cctvCameras.map(cam => `
+            container.innerHTML = cameras.map(cam => `
                 <div class="cam-card">
                     <div class="cam-title">${cam.name}</div>
                     <div class="cam-img-wrap">
@@ -360,7 +414,7 @@
         }
 
         function refreshAllData() {
-            if (currentTab === 'mtr') {
+            if (currentMainTab === 'mtr') {
                 fetchMTRData();
             } else {
                 renderCCTVImages();
